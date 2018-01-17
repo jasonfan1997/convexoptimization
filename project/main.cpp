@@ -14,8 +14,8 @@ using namespace std;
 int N=1000; //define the problem
 int M=1000;
 double L; //learing rate
-Matrix A(N,M);  
-Matrix b(N,1);
+Matrix A;  
+Matrix b;
 
 double squarevector(const Matrix &M) //taking square of the matrix
 {
@@ -74,12 +74,16 @@ Matrix prox(const Matrix& x,const double &L)
 };
 Matrix algorithm1(Matrix& x,const double &iteration,const double &L,bool output)
 {
+	
 	if(output==1){
+		ofstream myfile;
+	    myfile.open ("Proximal_gardient.csv");
 		for(int i=0;i<iteration;i++)
 		{
-				cout<<F(x)<<','<<endl;
+				myfile<<F(x)<<','<<endl;
 				x=prox(x-(1/L)*grad_f(x),L);
 		}
+		myfile.close();
 	}
 	if(output==0){
 		for(int i=0;i<iteration;i++)
@@ -98,13 +102,16 @@ Matrix algorithm2(Matrix& x,const double &iteration,const double &L,bool output)
 		double beta;
 		cout<<"Please choose a beta between 0 and 1"<<endl;
 		cin>>beta;
+		ofstream myfile;
+	    myfile.open ("Extraploted_proximal_gardient.csv");
 		for(int i=0;i<iteration;i++)
 		{
-			cout<<F(x)<<','<<endl;
+			myfile<<F(x)<<','<<endl;
 			temp=x;
 			x=prox(y-(1/L)*grad_f(y),L);
 			y=x+beta*(x-temp);
 		}
+		myfile.close();
 	}
 	if(output==0){
 		Matrix y(N,1);
@@ -275,25 +282,25 @@ void APG2(Matrix &x,Matrix &y,Matrix &z,double &theta,double &L)
 	x=prox(y-(1/L)*grad_f(y),L);
 	theta=(-theta+sqrt(pow(theta,4)+4*pow(theta,2)))/2;
 }
-void APG3(Matrix &x,Matrix &y,Matrix &z,double &A,double &a,Matrix &alpha,Matrix &x0,double &L)
+void APG3(Matrix &x,Matrix &y,Matrix &z,double &bigA,double &a,Matrix &alpha,Matrix &x0,double &L)
 {
-	a=(2+sqrt(4+8*A*L))/(2*L);
-	y=(A/(A+a))*x+(a/(A+a))*z;
+	a=(2+sqrt(4+8*bigA*L))/(2*L);
+	y=(bigA/(bigA+a))*x+(a/(bigA+a))*z;
 	x=prox(y-(1/L)*grad_f(y),L);
 	alpha=alpha+a*grad_f(x);
 	for(int i=0;i<x.get_row_dimension();i++)
 	{
-		if((x0.data[i][0]-alpha.data[i][0])>A)
+		if((x0.data[i][0]-alpha.data[i][0])>bigA)
 		{
-			z.data[i][0]=x0.data[i][0]-alpha.data[i][0]-A;
+			z.data[i][0]=x0.data[i][0]-alpha.data[i][0]-bigA;
 		}
-		else if(abs(x0.data[i][0]-alpha.data[i][0])<A)
+		else if(abs(x0.data[i][0]-alpha.data[i][0])<bigA)
 		{
 			z.data[i][0]=0;
 		}
-		else if((x0.data[i][0]-alpha.data[i][0])<-A)
+		else if((x0.data[i][0]-alpha.data[i][0])<-bigA)
 		{
-			z.data[i][0]=x0.data[i][0]-alpha.data[i][0]+A;
+			z.data[i][0]=x0.data[i][0]-alpha.data[i][0]+bigA;
 		}
 	}
 	
@@ -303,104 +310,146 @@ void APG3(Matrix &x,Matrix &y,Matrix &z,double &A,double &a,Matrix &alpha,Matrix
 int main()
 {
 	srand (time(NULL)); //set random seed
-	for(int i=0;i<A.row;i++)  //init the matrix
-	{
-		
-	b.data[i][0]=rand() % 100/10.0;
-		for(int j=0;j<A.column;j++)
+	cout<<"Please input N: ";
+	cin>>N;
+	cout<<endl;
+	cout<<"Please input M: ";
+	cin>>M;
+	cout<<endl;
+	Matrix temp1(N,M);  
+	Matrix temp2(N,1);
+	A=temp1;
+	b=temp2;
+	cout<<"Please select the problem(0 for random generated A and b,1 for user input A and b"<<endl;
+	bool problem;
+	cin>>problem;
+	if(problem==0)
+	{	
+		for(int i=0;i<A.row;i++)  //init the matrix
 		{
-			if(i==j)
-				A.data[i][j]=rand() % 100/10.0;
+			
+		b.data[i][0]=rand() % 100/10.0;
+			for(int j=0;j<A.column;j++)
+			{
+				if(i==j)
+					A.data[i][j]=rand() % 100/10.0;
+			}
 		}
-	}	
+	}
+	else
+	{
+		cout<<"Please input Matrix A:"<<endl;
+		for(int i=0;i<A.row;i++)  //init the matrix
+		{
+			for(int j=0;j<A.column;j++)
+			{
+					cin>>A.data[i][j];
+			}
+		}
+		cout<<"Please input Matrix b:"<<endl;
+		for(int i=0;i<A.row;i++)  //init the matrix
+		{
+
+			cin>>b.data[i][0];
+		}
+	}
 	int selection;
 	int iteration;
-	bool output;
-	Matrix x(N,1);
-	cout<<"Please choose the alogrithm:"<<endl;
-	cout<<"1.Proximal gardient"<<endl;
-	cout<<"2.Extraploted proximal gardient"<<endl;
-	cout<<"3.APG1"<<endl;
-	cout<<"4.APG2"<<endl;
-	cout<<"5.APG3"<<endl;
-	cout<<"6.MAPG1"<<endl;
-	cin>>selection;
-	cout<<"Please enter the number of iteration:"<<endl;
-	cin>>iteration;
-	cout<<"Please enter the L:"<<endl;
-	cin>>L;
-//	cout<<"Output?(0 or 1)"<<endl;
-//	cin>>output;
-	output=1;
-	if(selection==1){
-		x=algorithm1(x,iteration,L,output);
-	}
-	if(selection==2){
-		x=algorithm2(x,iteration,L,output);
-	}
-	if(selection==3)
+	bool output;	
+	int temp;
+	for(int j=1;j!=-1;j++)
 	{
-		ofstream myfile;
-      	myfile.open ("APG1.csv");
-		cout<<"Please type in theta: "<<endl;
-		double theta;
-		cin>>theta;
-		double beta=0;
-		Matrix y(N,1);
-		Matrix temp(N,1);
-		double temptheta=theta;
-		y=x;
-		temp=x;
-		for(int i=0;i<iteration;i++)
+		Matrix x(N,1);
+		cout<<"Please choose the alogrithm:"<<endl;
+		cout<<"0.Exit"<<endl;
+		cout<<"1.Proximal gardient"<<endl;
+		cout<<"2.Extraploted proximal gardient"<<endl;
+		cout<<"3.APG1"<<endl;
+		cout<<"4.APG2"<<endl;
+		cout<<"5.APG3"<<endl;
+		cout<<"6.MAPG1"<<endl;
+		cin>>selection;
+		if(selection==0)
 		{
-			APG1(x,y,theta,beta,temptheta,temp,L);
-			myfile <<i+1<<","<<F(x)<<","<<F(y)<<endl;
-		}	
-		myfile.close();
-		
-	}
-	if(selection==4)
-	{
-		ofstream myfile;
-      	myfile.open ("APG2.csv");
-		cout<<"Please type in theta: "<<endl;
-		double theta;
-		cin>>theta;
-		Matrix y(N,1);
-		Matrix z(N,1);
-		y=x;
-		z=x;
-		for(int i=0;i<iteration;i++)
-		{
-			APG2(x,y,z,theta,L);
-			myfile<<i+1<<","<<F(x)<<","<<F(y)<<endl;
-		}	
-		myfile.close();
-	}
-	if(selection==5)
-	{
-		ofstream myfile;
-      	myfile.open ("APG3.csv");
-		Matrix y(N,1);
-		Matrix x0(N,1);
-		Matrix z(N,1);
-		y=x;
-		z=x;
-		x0=x;
-		double a=0;
-		double A=0;
-		Matrix alpha;
-		alpha=x;
-		for(int i=0;i<iteration;i++)
-		{
-			APG3(x,y,z,A,a,alpha,x0,L);
-			myfile<<i+1<<","<<F(x)<<","<<F(y)<<endl;
+			break;
 		}
-		myfile.close();
-	}
-	if(selection==6)
-	{
-		x=algorithm6(x,iteration,L,output);
+		cout<<"Please enter the number of iteration:"<<endl;
+		cin>>iteration;
+		cout<<"Please enter the L:"<<endl;
+		cin>>L;
+	//	cout<<"Output?(0 or 1)"<<endl;
+	//	cin>>output;
+		output=1;
+		if(selection==1){
+			x=algorithm1(x,iteration,L,output);
+		}
+		if(selection==2){
+			x=algorithm2(x,iteration,L,output);
+		}
+		if(selection==3)
+		{
+			ofstream myfile;
+	      	myfile.open ("APG1.csv");
+			cout<<"Please type in theta: "<<endl;
+			double theta;
+			cin>>theta;
+			double beta=0;
+			Matrix y(N,1);
+			Matrix temp(N,1);
+			double temptheta=theta;
+			y=x;
+			temp=x;
+			for(int i=0;i<iteration;i++)
+			{
+				myfile <<i+1<<","<<F(x)<<","<<F(y)<<endl;
+				APG1(x,y,theta,beta,temptheta,temp,L);	
+			}	
+			myfile.close();
+			
+		}
+		if(selection==4)
+		{
+			ofstream myfile;
+	      	myfile.open ("APG2.csv");
+			cout<<"Please type in theta: "<<endl;
+			double theta;
+			cin>>theta;
+			Matrix y(N,1);
+			Matrix z(N,1);
+			y=x;
+			z=x;
+			for(int i=0;i<iteration;i++)
+			{
+				myfile<<i+1<<","<<F(x)<<","<<F(y)<<endl;
+				APG2(x,y,z,theta,L);	
+			}	
+			myfile.close();
+		}
+		if(selection==5)
+		{
+			ofstream myfile;
+	      	myfile.open ("APG3.csv");
+			Matrix y(N,1);
+			Matrix x0(N,1);
+			Matrix z(N,1);
+			y=x;
+			z=x;
+			x0=x;
+			double a=0;
+			double bigA=0;
+			Matrix alpha;
+			alpha=x;
+			for(int i=0;i<iteration;i++)
+			{
+				myfile<<i+1<<","<<F(x)<<","<<F(y)<<endl;
+				APG3(x,y,z,bigA,a,alpha,x0,L);	
+			}
+			myfile.close();
+		}
+		if(selection==6)
+		{
+			x=algorithm6(x,iteration,L,output);
+		}
 	}
 	system("pause");
 	
