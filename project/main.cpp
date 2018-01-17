@@ -10,10 +10,10 @@
 #include <algorithm>
 using namespace std;
 
-int N= 1000; //define the problem
-int M= 100;
-Matrix A(N,M);
-Matrix b(N,1);
+int N; //define the problem
+int M;
+Matrix A;
+Matrix b;
 int Max= 100000000;
 double squarevector(const Matrix &M) //taking square of the matrix
 {
@@ -60,7 +60,8 @@ Matrix grad_f(Matrix &x)
 };
 Matrix prox(const Matrix& x,const double &L)
 {
-	Matrix result=x;
+	Matrix result;
+	result=x;
 	for(int i=0;i<x.row;i++)
 	{
 		if(x.data[i][0]>=0)
@@ -73,6 +74,7 @@ Matrix prox(const Matrix& x,const double &L)
 Matrix PG(Matrix& x,const int &iteration,const double &L)
 {
 	Matrix f_value(iteration,1);
+	
 	for (int i=0; i< iteration; i++){
 		x=prox(x-(1/L)*grad_f(x),L);
 		f_value.data[i][0]= f(x);
@@ -340,18 +342,49 @@ int main()
 {
 	srand (time(NULL)); //set random seed
 	double L= 0.0;
-	for(int i=0;i<A.row;i++)  //init the matrix
-	{
-		b.data[i][0]=rand() % 100/10.0;
-		for(int j=0;j<A.column;j++)
+	cout<<"Please input N: ";
+	cin>>N;
+	cout<<endl;
+	cout<<"Please input M: ";
+	cin>>M;
+	cout<<endl;
+	Matrix temp1(N,M);  
+	Matrix temp2(N,1);
+	A=temp1;
+	b=temp2;
+	cout<<"Please select the problem(0 for random generated A and b,1 for user input A and b"<<endl;
+	bool problem;
+	cin>>problem;
+	if(problem==0)
+	{	
+		for(int i=0;i<A.row;i++)  //init the matrix
 		{
-			A.data[i][j]=(rand() % 100/10.0);
-			L= L+ A.data[i][j]*A.data[i][j];
+			
+		b.data[i][0]=rand() % 100/10.0;
+			for(int j=0;j<A.column;j++)
+			{
+				if(i==j)
+					A.data[i][j]=rand() % 100/10.0;
+			}
 		}
-	}	
+	}
+	else
+	{
+		cout<<"Please input Matrix A and b:"<<endl;
+		for(int i=0;i<N;i++)  //init the matrix
+		{
+			cin>>b.data[i][0];
+			for(int j=0;j<M;j++)
+			{
+					cin>>A.data[i][j];
+			}
+		}
+	}
+
+
 	int selection;
 	int iteration;
-	Matrix x_0(M,1);
+	
 	cout<<"Please enter the number of iteration:"<<endl;
 	cin>>iteration;
 
@@ -374,6 +407,7 @@ int main()
 		cout<<"7.AdaRes"<<endl;
 		cout<<"8.AdaAPG1"<<endl;
 		cin>>selection;
+		Matrix x_0(M,1);
 		if(selection==0) 
 		{
 			break;
