@@ -10,13 +10,11 @@
 #include <algorithm>
 using namespace std;
 
-
-int N=1000; //define the problem
-int M=1000;
-double L; //learing rate
-Matrix A;  
-Matrix b;
-
+int N= 1000; //define the problem
+int M= 100;
+Matrix A(N,M);
+Matrix b(N,1);
+int Max= 100000000;
 double squarevector(const Matrix &M) //taking square of the matrix
 {
 	double result=0;
@@ -72,384 +70,413 @@ Matrix prox(const Matrix& x,const double &L)
 	}
 	return result;
 };
-Matrix algorithm1(Matrix& x,const double &iteration,const double &L,bool output)
+Matrix PG(Matrix& x,const int &iteration,const double &L)
 {
-	
-	if(output==1){
-		ofstream myfile;
-	    myfile.open ("Proximal_gardient.csv");
-		for(int i=0;i<iteration;i++)
-		{
-				myfile<<F(x)<<','<<endl;
-				x=prox(x-(1/L)*grad_f(x),L);
-		}
-		myfile.close();
+	Matrix f_value(iteration,1);
+	for (int i=0; i< iteration; i++){
+		x=prox(x-(1/L)*grad_f(x),L);
+		f_value.data[i][0]= f(x);
 	}
-	if(output==0){
-		for(int i=0;i<iteration;i++)
-		{
-			x=prox(x-(1/L)*grad_f(x),L);
-		}
-	}
-
-	return x;
+	return f_value;	
 };
-Matrix algorithm2(Matrix& x,const double &iteration,const double &L,bool output)
+void apg1(Matrix &x,Matrix &y,double &theta,double &mu,const double &L)
 {
-	if(output==1){
-		Matrix y(N,1);
-		Matrix temp(N,1);
-		double beta;
-		cout<<"Please choose a beta between 0 and 1"<<endl;
-		cin>>beta;
-		ofstream myfile;
-	    myfile.open ("Extraploted_proximal_gardient.csv");
-		for(int i=0;i<iteration;i++)
-		{
-			myfile<<F(x)<<','<<endl;
-			temp=x;
-			x=prox(y-(1/L)*grad_f(y),L);
-			y=x+beta*(x-temp);
-		}
-		myfile.close();
-	}
-	if(output==0){
-		Matrix y(N,1);
-		Matrix temp(N,1);
-		double beta;
-		cout<<"Please choose a beta between 0 and 1"<<endl;
-		cin>>beta;
-		for(int i=0;i<iteration;i++)
-		{
-			temp=x;
-			x=prox(y-(1/L)*grad_f(y),L);
-			y=x+beta*(x-temp);
-		}
-	}
-
-	return x;
-};
-Matrix algorithm3(Matrix& x,const double &iteration,const double &L,bool output)
-{
-	if(output==1){
-		Matrix y(N,1);
-		y=x;
-		Matrix temp(N,1);
-		double beta;
-		double theta;
-		double temptheta;
-		cout<<"Please choose a theta between 0 and 1"<<endl;
-		cin>>theta;
-		for(int i=0;i<iteration;i++)
-		{
-			cout<<F(x)<<','<<endl;
-			temp=x;
-			x=prox(y-(1/L)*grad_f(y),L);
-			temptheta=theta;
-			theta=(-theta+sqrt(pow(theta,4)+4*pow(theta,2)))/2;
-			beta=temptheta*(1-temptheta)/(temptheta*temptheta+theta);
-			y=x+beta*(x-temp);
-			
-		}
-	}
-	if(output==0){
-		Matrix y(N,1);
-		y=x;
-		Matrix temp(N,1);
-		double beta;
-		double theta;
-		double temptheta;
-		cout<<"Please choose a theta between 0 and 1"<<endl;
-		cin>>theta;
-		for(int i=0;i<iteration;i++)
-		{
-			temp=x;
-			x=prox(y-(1/L)*grad_f(y),L);
-			temptheta=theta;
-			theta=(-theta+sqrt(pow(theta,4)+4*pow(theta,2)))/2;
-			beta=temptheta*(1-temptheta)/(temptheta*temptheta+theta);
-			y=x+beta*(x-temp);
-			
-		}
-	}
-
-	return x;
-};
-Matrix algorithm4(Matrix& x,const double &iteration,const double &L,bool output)
-{
-	if(output==1){
-		Matrix y(N,1);
-		Matrix z(N,1);
-		z=x;
-		double theta;
-		cout<<"Please choose a theta between 0 and 1"<<endl;
-		cin>>theta;
-		for(int i=0;i<iteration;i++)
-		{
-			cout<<F(x)<<','<<endl;
-			y=(1-theta)*x+theta*z;
-			z=prox(z-(1/(theta*L))*grad_f(y),theta*L);
-			x=prox(y-(1/L)*grad_f(y),L);
-			theta=(-theta+sqrt(5.0*(theta*theta)))/2;
-			
-		}
-	}
-	if(output==0){
-		Matrix y(N,1);
-		Matrix z(N,1);
-		z=x;
-		double theta;
-		cout<<"Please choose a theta between 0 and 1"<<endl;
-		cin>>theta;
-		for(int i=0;i<iteration;i++)
-		{
-			y=(1-theta)*x+theta*z;
-			z=prox(z-(1/(theta*L))*grad_f(y),theta*L);
-			x=prox(y-(1/L)*grad_f(y),L);
-			theta=(-theta+sqrt(5.0*(theta*theta)))/2;
-			
-		}
-	}
-
-	return x;
-};
-Matrix algorithm6(Matrix& x,const double &iteration,const double &L,bool output)
-{
-	if(output==1){
-		Matrix y(N,1);
-		y=x;
-		Matrix temp(N,1);
-		double beta;
-		double theta;
-		double mu;
-		double temptheta;
-		cout<<"Please choose a theta between 0 and 1"<<endl;
-		cin>>theta;
-		cout<<"Please enter the value of mu"<<endl;
-		cin>>mu;
-		for(int i=0;i<iteration;i++)
-		{
-			cout<<F(x)<<','<<endl;
-			temp=x;
-			x=prox(y-(1/L)*grad_f(y),L);
-			temptheta=theta;
-			theta=(theta*theta)/(1-mu/L+theta*theta);
-			beta=temptheta*(1-temptheta)/(temptheta*temptheta+theta);
-			y=x+beta*(x-temp);
-			
-		}
-	}
-	if(output==0){
-		Matrix y(N,1);
-		y=x;
-		Matrix temp(N,1);
-		double beta;
-		double theta;
-		double mu;
-		double temptheta;
-		cout<<"Please choose a theta between 0 and 1"<<endl;
-		cin>>theta;
-		cout<<"Please enter the value of mu"<<endl;
-		cin>>mu;
-		for(int i=0;i<iteration;i++)
-		{
-			temp=x;
-			x=prox(y-(1/L)*grad_f(y),L);
-			temptheta=theta;
-			theta=(theta*theta)/(1-mu/L+theta*theta);
-			beta=temptheta*(1-temptheta)/(temptheta*temptheta+theta);
-			y=x+beta*(x-temp);
-			
-		}
-	}
-
-	return x;
-};
-
-void APG1(Matrix &x,Matrix &y,double &theta,double &beta,double temptheta,Matrix &temp,double &L)
-{
-	temp=x;
+	Matrix temp;
+	temp =x;
 	x=prox(y-(1/L)*grad_f(y),L);
-	temptheta=theta;
-	theta=(-theta+sqrt(pow(theta,4)+4*pow(theta,2)))/2;
-	beta=temptheta*(1-temptheta)/(temptheta*temptheta+theta);
+	double temptheta=theta;
+	theta=(-pow(theta,2)+ mu/L+sqrt(pow(pow(theta,2)- mu/L,2)+4*pow(theta,2)))/2;
+	double beta=temptheta*(1-temptheta)/(temptheta*temptheta+theta);
 	y=x+beta*(x-temp);
 }
-void APG2(Matrix &x,Matrix &y,Matrix &z,double &theta,double &L)
+void apg2(Matrix &x,Matrix &z,double &theta,double &mu, const double &L, bool choice)
 {
+	Matrix y;
 	y=(1-theta)*x+theta*z;
 	z=prox(z-(1/(theta*L))*grad_f(y),theta*L);
-	x=prox(y-(1/L)*grad_f(y),L);
-	theta=(-theta+sqrt(pow(theta,4)+4*pow(theta,2)))/2;
+	if (choice==0){
+		x=prox(y-(1/L)*grad_f(y),L);
+	}
+	else{
+		x= (1- theta)*x+ theta*z;
+	}
+	theta=(-pow(theta,2)+ mu/L+sqrt(pow(pow(theta,2)- mu/L,2)+4*pow(theta,2)))/2;
 }
-void APG3(Matrix &x,Matrix &y,Matrix &z,double &bigA,double &a,Matrix &alpha,Matrix &x0,double &L)
+void apg3(Matrix &x,Matrix &z,Matrix &y,double &A,Matrix &alpha,Matrix &x0,double &mu,const double &L)
 {
-	a=(2+sqrt(4+8*bigA*L))/(2*L);
-	y=(bigA/(bigA+a))*x+(a/(bigA+a))*z;
+	double a=(2*(1+ mu*A)/L+sqrt(4*pow((1+ mu*A)/L,2)+8*(1+ mu*A)*A/L))/2;
+	y=(A/(A+a))*x+(a/(A+a))*z;
 	x=prox(y-(1/L)*grad_f(y),L);
 	alpha=alpha+a*grad_f(x);
 	for(int i=0;i<x.get_row_dimension();i++)
 	{
-		if((x0.data[i][0]-alpha.data[i][0])>bigA)
+		if((x0.data[i][0]-alpha.data[i][0])>A)
 		{
-			z.data[i][0]=x0.data[i][0]-alpha.data[i][0]-bigA;
+			z.data[i][0]=x0.data[i][0]-alpha.data[i][0]-A;
 		}
-		else if(abs(x0.data[i][0]-alpha.data[i][0])<bigA)
+		else if(abs(x0.data[i][0]-alpha.data[i][0])<A)
 		{
 			z.data[i][0]=0;
 		}
-		else if((x0.data[i][0]-alpha.data[i][0])<-bigA)
+		else if((x0.data[i][0]-alpha.data[i][0])<-A)
 		{
-			z.data[i][0]=x0.data[i][0]-alpha.data[i][0]+bigA;
+			z.data[i][0]=x0.data[i][0]-alpha.data[i][0]+A;
 		}
 	}
-	
+	A= A+ a;
 }
+Matrix APG1(Matrix& x,const int &iteration,double &mu, const double &L)
+{
+	Matrix f_value(iteration,2);
+	Matrix y;
+	y= x;
+	double theta= 1.0;
+	for (int i=0; i< iteration; i++){
+		apg1(x,y,theta,mu,L);
+		f_value.data[i][0]= F(x);
+		f_value.data[i][1]= F(y);
+	}
+	return f_value;
+};
+Matrix APG2(Matrix& x,const int &iteration,double &mu, const double &L)
+{
+	Matrix f_value(iteration,2);
+	Matrix z;
+	z= x;
+	double theta= 1.0;
+	for (int i=0; i< iteration; i++){
+		apg2(x,z,theta,mu,L,0);
+		f_value.data[i][0]= F(x);
+		f_value.data[i][1]= F(z);
+	}
+	return f_value;
+};
+Matrix APG3(Matrix& x_0,const int &iteration,double &mu, const double &L)
+{
+	int n= x_0.get_row_dimension();
+	Matrix f_value(iteration,2);
+	Matrix x;
+	x= x_0; 
+	Matrix z;
+	z= x;
+	Matrix y;
+	double A= 0.0;
+	Matrix alpha(n,1) ;
+	for (int i=0; i< iteration; i++){
+		apg3(x,z,y,A,alpha,x_0,mu,L);
+		f_value.data[i][0]= F(x);
+		f_value.data[i][1]= F(z);
+	}
+	return f_value;
+};
+Matrix AdaMAPG3(Matrix &y_ini,const int &iteration,double &mu, const double &L)
+{
+	int k= 0;
+	int n= y_ini.get_row_dimension();
+	Matrix f_value(iteration,2);
+	Matrix x_0;
+	x_0= prox(y_ini-(1/L)*grad_f(y_ini),L);
+	for (int t= 1; t< iteration; t++){
+		Matrix x;
+		x= x_0;
+		Matrix z;
+		z= x_0;
+		Matrix y;
+		double A= 0.0;
+		Matrix alpha(n,1); 
+		Matrix v;
+		for (int i=0; i< Max; i++){
+			apg3(x,z,y,A,alpha,x_0,mu,L);
+			f_value.data[k][0]= F(x);
+			f_value.data[k][1]= F(z);
+			k= k+1;
+			v= prox(x-(1/L)*grad_f(x),L);
+			if (squarevector(v- x)<= 0.5*squarevector(x_0- y_ini)){
+				x_0= x;
+				y_ini= y;
+				break;
+			}
+			else if (A>= 8*mu*mu/L){
+				mu= 0.5*mu;
+				break;
+			}
+		}
+		if (k>= iteration){
+			break;
+		}
+	}
+	return f_value;
+};
+Matrix AdaMAPG1(Matrix &y_ini,const int &iteration,double &mu, const double &L)
+{
+	int num= 0;
+	int k= 0;
+	Matrix f_value(iteration,2);
+	Matrix x_0;
+	x_0= prox(y_ini-(1/L)*grad_f(y_ini),L);
+	for (int t= 1; t< iteration; t++){
+		Matrix x;
+		x= x_0;
+		Matrix y;
+		y= x_0;
+		Matrix y_temp;
+		double theta= sqrt(mu/L);
+		for (int i=0; i< Max; i++){
+			y_temp= y;
+			apg1(x,y,theta,mu,L);
+			f_value.data[k][0]= F(x);
+			f_value.data[k][1]= F(y);
+			k= k+1;
+			if (k>= iteration){
+				break;
+			}
+			else if (squarevector(x- y_temp)<= 0.5*squarevector(x_0- y_ini)){
+				x_0= x;
+				y_ini= y_temp;
+				break;
+			}
+			else if (8*L/mu*sqrt(2*pow(1- sqrt(mu/L),i))<= 1){
+				mu= 0.5*mu;
+				num= num+ 1;
+				break;
+			}
+		}
+		if (k>= iteration){
+			break;
+		}
+	}
+	cout<< "restart "<< num<< " times"<< endl;
+	return f_value;
+};
+Matrix AdaRes(Matrix &x_0,const int &iteration,double &mu_F, const double &L)
+{
+	int num= 0;
+	Matrix f_value(iteration,2);
+	Matrix y_0;
+	y_0= prox(x_0-(1/L)*grad_f(x_0),L);
+	Matrix x;
+	Matrix y; 
+	Matrix v;
+	double mu= 0.0;
+	for (int t= 0; t< iteration; t++){
+		double K= floor(2*sqrt(L*exp(1)/mu_F));
+		double C= 16*L*squarevector(x_0- y_0)/mu_F;
+		for (int k=0; k< Max; k++){
+			x= y_0;
+			y= x;
+			double theta= 1.0;
+			for (int i=0; i< K; i++){
+				apg1(x,y,theta,mu,L);
+				f_value.data[num][0]= F(x);
+				f_value.data[num][1]= F(y);
+				num= num+ 1;
+				if (num>=iteration){
+					break;
+				}
+			}
+			v= prox(x-(1/L)*grad_f(x),L);
+			if (num>= iteration){
+				break;
+			}
+			else if (squarevector(v- x)> C*pow(theta/mu_F,k)){
+				x_0= x;
+				y_0= v;
+				mu_F= 0.5*mu_F;
+				break;
+			}
+		}
+		if (num>= iteration){
+			break;
+		}
+	}
+	return f_value;
+};
+Matrix AdaAPG1(Matrix &x_0,const int &iteration, const double &L, bool choice)
+{
+	int k= 0;
+	int n= x_0.get_row_dimension();
+	Matrix f_value(iteration,2);
+	Matrix y;
+	Matrix x;
+	Matrix x_temp;
+	Matrix y_temp;
+	double mu= 0.0;
+	for (int t= 1; t< iteration; t++){
+		x= x_0;
+		y= x;
+		double theta= 1.0;
+		for (int i=0; i< Max; i++){
+			x_temp= x;
+			y_temp= y;
+			apg1(x,y,theta,mu,L);
+			f_value.data[k][0]= F(x);
+			f_value.data[k][1]= F(y);
+			k= k+1;
+			if (k>= iteration){
+				break;
+			}
+			else if (k>1&&choice== 0){
+				if (f_value.data[k-1][0]> f_value.data[k-2][0]){
+					x_0= x_temp;
+					break;
+				}
+			}
+			else if (choice== 1){
+				if (innerproduct(y_temp- x,x- x_temp)> 0){
+					x_0= x_temp;
+					break;
+				}
+			}
+		}
+		if (k>= iteration){
+			break;
+		}
+	}
+	return f_value;
+};
 
 
 int main()
 {
 	srand (time(NULL)); //set random seed
-	cout<<"Please input N: ";
-	cin>>N;
-	cout<<endl;
-	cout<<"Please input M: ";
-	cin>>M;
-	cout<<endl;
-	Matrix temp1(N,M);  
-	Matrix temp2(N,1);
-	A=temp1;
-	b=temp2;
-	cout<<"Please select the problem(0 for random generated A and b,1 for user input A and b"<<endl;
-	bool problem;
-	cin>>problem;
-	if(problem==0)
-	{	
-		for(int i=0;i<A.row;i++)  //init the matrix
-		{
-			
-		b.data[i][0]=rand() % 100/10.0;
-			for(int j=0;j<A.column;j++)
-			{
-				if(i==j)
-					A.data[i][j]=rand() % 100/10.0;
-			}
-		}
-	}
-	else
+	double L= 0.0;
+	for(int i=0;i<A.row;i++)  //init the matrix
 	{
-		cout<<"Please input Matrix A:"<<endl;
-		for(int i=0;i<A.row;i++)  //init the matrix
+		b.data[i][0]=rand() % 100/10.0;
+		for(int j=0;j<A.column;j++)
 		{
-			for(int j=0;j<A.column;j++)
-			{
-					cin>>A.data[i][j];
-			}
+			A.data[i][j]=(rand() % 100/10.0);
+			L= L+ A.data[i][j]*A.data[i][j];
 		}
-		cout<<"Please input Matrix b:"<<endl;
-		for(int i=0;i<A.row;i++)  //init the matrix
-		{
-
-			cin>>b.data[i][0];
-		}
-	}
+	}	
 	int selection;
 	int iteration;
-	bool output;	
-	int temp;
-	for(int j=1;j!=-1;j++)
+	Matrix x_0(M,1);
+	cout<<"Please enter the number of iteration:"<<endl;
+	cin>>iteration;
+
+
+	Matrix F_value;
+	string pathnamestore;
+	string p;
+//	cout<<"Output?(0 or 1)"<<endl;
+//	cin>>output;
+	while(1==1)
 	{
-		Matrix x(N,1);
 		cout<<"Please choose the alogrithm:"<<endl;
-		cout<<"0.Exit"<<endl;
+		cout<<"0.exit"<<endl; 
 		cout<<"1.Proximal gardient"<<endl;
-		cout<<"2.Extraploted proximal gardient"<<endl;
-		cout<<"3.APG1"<<endl;
-		cout<<"4.APG2"<<endl;
-		cout<<"5.APG3"<<endl;
-		cout<<"6.MAPG1"<<endl;
+		cout<<"2.APG1"<<endl;
+		cout<<"3.APG2"<<endl;
+		cout<<"4.APG3"<<endl;
+		cout<<"5.AdaMAPG3"<<endl;
+		cout<<"6.AdaMAPG1"<<endl;
+		cout<<"7.AdaRes"<<endl;
+		cout<<"8.AdaAPG1"<<endl;
 		cin>>selection;
-		if(selection==0)
+		if(selection==0) 
 		{
 			break;
 		}
-		cout<<"Please enter the number of iteration:"<<endl;
-		cin>>iteration;
-		cout<<"Please enter the L:"<<endl;
-		cin>>L;
-	//	cout<<"Output?(0 or 1)"<<endl;
-	//	cin>>output;
-		output=1;
 		if(selection==1){
-			x=algorithm1(x,iteration,L,output);
+			F_value= PG(x_0,iteration,L);
+			ofstream myfile;
+			myfile.open ("PG.csv");
+			for(int i=0;i<iteration;i++)
+			{
+				myfile<<i+1<<","<<F_value.data[i][0]<<endl;
+			}
+			myfile.close();
 		}
-		if(selection==2){
-			x=algorithm2(x,iteration,L,output);
+		if(selection==2)
+		{
+			double mu= 0.0;
+			F_value= APG1(x_0,iteration,mu,L);
+			ofstream myfile;
+			myfile.open ("APG1.csv");
+			for(int i=0;i<iteration;i++)
+			{
+				myfile<<i+1<<","<<F_value.data[i][0]<<","<<F_value.data[i][1]<<endl;
+			}
+			myfile.close();
 		}
 		if(selection==3)
 		{
+			double mu= 0.0;
+			F_value= APG2(x_0,iteration,mu,L);
 			ofstream myfile;
-	      	myfile.open ("APG1.csv");
-			cout<<"Please type in theta: "<<endl;
-			double theta;
-			cin>>theta;
-			double beta=0;
-			Matrix y(N,1);
-			Matrix temp(N,1);
-			double temptheta=theta;
-			y=x;
-			temp=x;
+			myfile.open ("APG2.csv");
 			for(int i=0;i<iteration;i++)
 			{
-				myfile <<i+1<<","<<F(x)<<","<<F(y)<<endl;
-				APG1(x,y,theta,beta,temptheta,temp,L);	
-			}	
+				myfile<<i+1<<","<<F_value.data[i][0]<<","<<F_value.data[i][1]<<endl;
+			}
 			myfile.close();
-			
-		}
+		}	
 		if(selection==4)
 		{
+			double mu= 0.0;
+			F_value= APG3(x_0,iteration,mu,L);
 			ofstream myfile;
-	      	myfile.open ("APG2.csv");
-			cout<<"Please type in theta: "<<endl;
-			double theta;
-			cin>>theta;
-			Matrix y(N,1);
-			Matrix z(N,1);
-			y=x;
-			z=x;
+			myfile.open ("APG3.csv");
 			for(int i=0;i<iteration;i++)
 			{
-				myfile<<i+1<<","<<F(x)<<","<<F(y)<<endl;
-				APG2(x,y,z,theta,L);	
-			}	
+				myfile<<i+1<<","<<F_value.data[i][0]<<","<<F_value.data[i][1]<<endl;
+			}
 			myfile.close();
 		}
 		if(selection==5)
 		{
+			double mu= 0.1*L;
+			F_value= AdaMAPG3(x_0,iteration,mu,L);
 			ofstream myfile;
-	      	myfile.open ("APG3.csv");
-			Matrix y(N,1);
-			Matrix x0(N,1);
-			Matrix z(N,1);
-			y=x;
-			z=x;
-			x0=x;
-			double a=0;
-			double bigA=0;
-			Matrix alpha;
-			alpha=x;
+			myfile.open ("AdaMAPG3_10per.csv");
 			for(int i=0;i<iteration;i++)
 			{
-				myfile<<i+1<<","<<F(x)<<","<<F(y)<<endl;
-				APG3(x,y,z,bigA,a,alpha,x0,L);	
+				myfile<<i+1<<","<<F_value.data[i][0]<<","<<F_value.data[i][1]<<endl;
 			}
 			myfile.close();
 		}
 		if(selection==6)
 		{
-			x=algorithm6(x,iteration,L,output);
+			double est= 1e-1;
+			double mu= est*L;
+			F_value= AdaMAPG1(x_0,iteration,mu,L);
+			ofstream myfile;
+			p= to_string(int(-log10(est)));
+			pathnamestore= "AdaMAPG1_"+p+".csv";
+			myfile.open (pathnamestore.c_str());
+			for(int i=0;i<iteration;i++)
+			{
+				myfile<<i+1<<","<<F_value.data[i][0]<<","<<F_value.data[i][1]<<endl;
+			}
+			myfile.close();
 		}
+		if(selection==7)
+		{
+			double est= 1e-1;
+			double mu_F= est*L;
+			F_value= AdaRes(x_0,iteration,mu_F,L);
+			ofstream myfile;
+			p= to_string(int(-log10(est)));
+			pathnamestore= "AdaMAPG1_"+p+".csv";
+			myfile.open (pathnamestore.c_str());
+			for(int i=0;i<iteration;i++)
+			{
+				myfile<<i+1<<","<<F_value.data[i][0]<<","<<F_value.data[i][1]<<endl;
+			}
+			myfile.close();
+		}
+		if(selection==8)
+		{
+			F_value= AdaAPG1(x_0,iteration,L,0);
+			ofstream myfile;
+			myfile.open ("AdaAPG1_fun.csv");
+			for(int i=0;i<iteration;i++)
+			{
+				myfile<<i+1<<","<<F_value.data[i][0]<<","<<F_value.data[i][1]<<endl;
+			}
+			myfile.close();
+		}	
 	}
 	system("pause");
 	
