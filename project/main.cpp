@@ -2,9 +2,11 @@
 #include<string>
 #include <cmath>
 #include <time.h>
+#include<vector>
 #include <stdlib.h> 
 #include "Matrix.h"
 #include <random>
+#include <fstream>
 #include <algorithm>
 using namespace std;
 
@@ -137,7 +139,7 @@ Matrix algorithm3(Matrix& x,const double &iteration,const double &L,bool output)
 			temp=x;
 			x=prox(y-(1/L)*grad_f(y),L);
 			temptheta=theta;
-			theta=(-theta+sqrt(5.0*(theta*theta)))/2;
+			theta=(-theta+sqrt(pow(theta,4)+4*pow(theta,2)))/2;
 			beta=temptheta*(1-temptheta)/(temptheta*temptheta+theta);
 			y=x+beta*(x-temp);
 			
@@ -157,7 +159,7 @@ Matrix algorithm3(Matrix& x,const double &iteration,const double &L,bool output)
 			temp=x;
 			x=prox(y-(1/L)*grad_f(y),L);
 			temptheta=theta;
-			theta=(-theta+sqrt(5.0*(theta*theta)))/2;
+			theta=(-theta+sqrt(pow(theta,4)+4*pow(theta,2)))/2;
 			beta=temptheta*(1-temptheta)/(temptheta*temptheta+theta);
 			y=x+beta*(x-temp);
 			
@@ -257,6 +259,47 @@ Matrix algorithm6(Matrix& x,const double &iteration,const double &L,bool output)
 	return x;
 };
 
+void APG1(Matrix &x,Matrix &y,double &theta,double &beta,double temptheta,Matrix &temp,double &L)
+{
+	temp=x;
+	x=prox(y-(1/L)*grad_f(y),L);
+	temptheta=theta;
+	theta=(-theta+sqrt(pow(theta,4)+4*pow(theta,2)))/2;
+	beta=temptheta*(1-temptheta)/(temptheta*temptheta+theta);
+	y=x+beta*(x-temp);
+}
+void APG2(Matrix &x,Matrix &y,Matrix &z,double &theta,double &L)
+{
+	y=(1-theta)*x+theta*z;
+	z=prox(z-(1/(theta*L))*grad_f(y),theta*L);
+	x=prox(y-(1/L)*grad_f(y),L);
+	theta=(-theta+sqrt(pow(theta,4)+4*pow(theta,2)))/2;
+}
+void APG3(Matrix &x,Matrix &y,Matrix &z,double &A,double &a,Matrix &alpha,Matrix &x0,double &L)
+{
+	a=(2+sqrt(4+8*A*L))/(2*L);
+	y=(A/(A+a))*x+(a/(A+a))*z;
+	x=prox(y-(1/L)*grad_f(y),L);
+	alpha=alpha+a*grad_f(x);
+	for(int i=0;i<x.get_row_dimension();i++)
+	{
+		if((x0.data[i][0]-alpha.data[i][0])>A)
+		{
+			z.data[i][0]=x0.data[i][0]-alpha.data[i][0]-A;
+		}
+		else if(abs(x0.data[i][0]-alpha.data[i][0])<A)
+		{
+			z.data[i][0]=0;
+		}
+		else if((x0.data[i][0]-alpha.data[i][0])<-A)
+		{
+			z.data[i][0]=x0.data[i][0]-alpha.data[i][0]+A;
+		}
+	}
+	
+}
+
+
 int main()
 {
 	srand (time(NULL)); //set random seed
@@ -279,14 +322,16 @@ int main()
 	cout<<"2.Extraploted proximal gardient"<<endl;
 	cout<<"3.APG1"<<endl;
 	cout<<"4.APG2"<<endl;
+	cout<<"5.APG3"<<endl;
 	cout<<"6.MAPG1"<<endl;
 	cin>>selection;
 	cout<<"Please enter the number of iteration:"<<endl;
 	cin>>iteration;
 	cout<<"Please enter the L:"<<endl;
 	cin>>L;
-	cout<<"Output?(0 or 1)"<<endl;
-	cin>>output;
+//	cout<<"Output?(0 or 1)"<<endl;
+//	cin>>output;
+	output=1;
 	if(selection==1){
 		x=algorithm1(x,iteration,L,output);
 	}
@@ -295,11 +340,63 @@ int main()
 	}
 	if(selection==3)
 	{
-		x=algorithm3(x,iteration,L,output);
+		ofstream myfile;
+      	myfile.open ("APG1.csv");
+		cout<<"Please type in theta: "<<endl;
+		double theta;
+		cin>>theta;
+		double beta=0;
+		Matrix y(N,1);
+		Matrix temp(N,1);
+		double temptheta=theta;
+		y=x;
+		temp=x;
+		for(int i=0;i<iteration;i++)
+		{
+			APG1(x,y,theta,beta,temptheta,temp,L);
+			myfile <<i+1<<","<<F(x)<<","<<F(y)<<endl;
+		}	
+		myfile.close();
+		
 	}
 	if(selection==4)
 	{
-		x=algorithm4(x,iteration,L,output);
+		ofstream myfile;
+      	myfile.open ("APG2.csv");
+		cout<<"Please type in theta: "<<endl;
+		double theta;
+		cin>>theta;
+		Matrix y(N,1);
+		Matrix z(N,1);
+		y=x;
+		z=x;
+		for(int i=0;i<iteration;i++)
+		{
+			APG2(x,y,z,theta,L);
+			myfile<<i+1<<","<<F(x)<<","<<F(y)<<endl;
+		}	
+		myfile.close();
+	}
+	if(selection==5)
+	{
+		ofstream myfile;
+      	myfile.open ("APG3.csv");
+		Matrix y(N,1);
+		Matrix x0(N,1);
+		Matrix z(N,1);
+		y=x;
+		z=x;
+		x0=x;
+		double a=0;
+		double A=0;
+		Matrix alpha;
+		alpha=x;
+		for(int i=0;i<iteration;i++)
+		{
+			APG3(x,y,z,A,a,alpha,x0,L);
+			myfile<<i+1<<","<<F(x)<<","<<F(y)<<endl;
+		}
+		myfile.close();
 	}
 	if(selection==6)
 	{
