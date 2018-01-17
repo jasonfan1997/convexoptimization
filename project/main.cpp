@@ -353,8 +353,8 @@ int main()
 	Matrix temp2(N,1);
 	A=temp1;
     b=temp2;
-	cout<<"Please select the problem(0 for random generated A and b,1 for user input A and b"<<endl;
-	bool problem;
+	cout<<"Please select the problem(0 for random generated A and b,1 for user input A and b,2 for sparse"<<endl;
+	int problem;
 	cin>>problem;
 	if(problem==0)
 	{	
@@ -369,7 +369,7 @@ int main()
 			}
 		}
 	}
-	else
+	else if (problem==1)
 	{
 		cout<<"Please input Matrix A and b:"<<endl;
 		for(int i=0;i<N;i++)  //init the matrix
@@ -381,7 +381,31 @@ int main()
 			}
 		}
 	}
-
+	else
+	{
+		cout<<"Please input Matrix A and b in sprase form:(enter end at the end)"<<endl;
+		string temp;
+		cin>>temp;
+		int i=0;
+		while(i<N)
+		{
+			
+			b.data[i][0]=stod(temp);
+			cin>>temp;
+			while(temp.find(":")!= std::string::npos && temp!="end")
+			{
+				int j;
+				for(j =0;j<temp.size();j++)
+				{
+					if(temp[j]==':')
+						break; 
+				}
+				A.data[i][stoi(temp.substr(0,j))]=stod(temp.substr(j+1,temp.size()-j));
+				cin>>temp;
+			}
+			i++;
+		}
+	}
 
 	int selection;
 	int iteration;
