@@ -1,3 +1,4 @@
+
 #include<iostream>
 #include<string>
 #include <cmath>
@@ -75,7 +76,7 @@ Matrix PG(Matrix& x,const int &iteration,const double &L)
 {
 	Matrix f_value(iteration,1);
 	
-	for (int i=0; i< iteration; i++){
+	for (int i=0; i< iteration; i++){ 
 		x=prox(x-(1/L)*grad_f(x),L);
 		f_value.data[i][0]= f(x);
 	}
@@ -341,7 +342,7 @@ Matrix AdaAPG1(Matrix &x_0,const int &iteration, const double &L, bool choice)
 int main()
 {
 	srand (time(NULL)); //set random seed
-	double L= 0.0;
+	double L= 1000;
 	cout<<"Please input N: ";
 	cin>>N;
 	cout<<endl;
@@ -351,7 +352,7 @@ int main()
 	Matrix temp1(N,M);  
 	Matrix temp2(N,1);
 	A=temp1;
-	b=temp2;
+    b=temp2;
 	cout<<"Please select the problem(0 for random generated A and b,1 for user input A and b"<<endl;
 	bool problem;
 	cin>>problem;
@@ -389,7 +390,7 @@ int main()
 	cin>>iteration;
 
 
-	Matrix F_value;
+	
 	string pathnamestore;
 	string p;
 //	cout<<"Output?(0 or 1)"<<endl;
@@ -406,6 +407,7 @@ int main()
 		cout<<"6.AdaMAPG1"<<endl;
 		cout<<"7.AdaRes"<<endl;
 		cout<<"8.AdaAPG1"<<endl;
+		Matrix F_value;
 		cin>>selection;
 		Matrix x_0(M,1);
 		if(selection==0) 
@@ -515,3 +517,4 @@ int main()
 	system("pause");
 	
 }
+
