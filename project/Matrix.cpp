@@ -114,7 +114,7 @@ int Matrix::get_column_dimension() const
 {
 	return column;
 }
- void Matrix::transpose()
+ Matrix Matrix::transpose()
  {
 	Matrix m;
 	m.row=column;
@@ -135,15 +135,7 @@ int Matrix::get_column_dimension() const
           m.data[j][i]=data[i][j];
     }
   }
-	row=m.row;
-	column=m.column;
-	for(int i=0;i<row;i++)
-  {
-    for(int j=0;j<column;j++)
-    {
-          data[i][j]=m.data[i][j];
-    }
-  }
+	return m;
  }
  void Matrix::transpose_prime()
  {

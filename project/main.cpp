@@ -14,6 +14,8 @@ using namespace std;
 int N; //define the problem
 int M;
 Matrix A;
+Matrix Atranspose;
+Matrix AtransposeA;
 Matrix b;
 int Max= 100000000;
 double squarevector(const Matrix &M) //taking square of the matrix
@@ -57,7 +59,7 @@ double F(Matrix &x)
 
 Matrix grad_f(Matrix &x)
 {
-	return A*x-b;
+	return AtransposeA*x-Atranspose*b;
 };
 Matrix prox(const Matrix& x,const double &L)
 {
@@ -77,7 +79,7 @@ Matrix PG(Matrix& x,const int &iteration,const double &L)
 	Matrix f_value(iteration,1);
 	
 	for (int i=0; i< iteration; i++){ 
-		x=prox(x-(1/L)*grad_f(x),L);
+		x=prox(x-(1/L)*grad_f(x),L);	
 		f_value.data[i][0]= f(x);
 	}
 	return f_value;	
@@ -351,8 +353,10 @@ int main()
 	cout<<endl;
 	Matrix temp1(N,M);  
 	Matrix temp2(N,1);
+	//Matrix temp3(M,M);
 	A=temp1;
     b=temp2;
+    
 	cout<<"Please select the problem(0 for random generated A and b,1 for user input A and b,2 for sparse"<<endl;
 	int problem;
 	cin>>problem;
@@ -406,7 +410,9 @@ int main()
 			i++;
 		}
 	}
-
+//	cout<<"temp"<<endl;
+	Atranspose=A.transpose();
+	AtransposeA=Atranspose*A;
 	int selection;
 	int iteration;
 	

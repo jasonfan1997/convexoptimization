@@ -28,7 +28,7 @@ public:
     void row_multiplication(int i, double k);
     void row_addition(int i, int j, double k) ;
 
-	void transpose();
+	Matrix transpose();
   // Overloaded operators
     friend ostream& operator<<( ostream & cout, const  Matrix& t );
     friend istream & operator>> (istream& cin, Matrix& m);
