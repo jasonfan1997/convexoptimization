@@ -22,6 +22,7 @@ public:
 	double get_entry(int r, int c);
 	int get_row_dimension() const; // the number of rows;
 	int get_column_dimension() const;
+	void transpose_prime();
 		
     void row_switching(int i, int j);
     void row_multiplication(int i, double k);

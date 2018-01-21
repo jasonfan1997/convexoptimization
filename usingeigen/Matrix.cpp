@@ -137,7 +137,10 @@ int Matrix::get_column_dimension() const
   }
 	return m;
  }
-
+ void Matrix::transpose_prime()
+ {
+     	flag=1;
+ }
 ostream& operator<<( ostream & cout, const  Matrix& t )
  {
      if(t.flag==0){
@@ -224,8 +227,7 @@ Matrix r;
 }
 Matrix operator*(double a,const  Matrix& t)
 {
-	Matrix r(t.row,t.column);
-	/*
+	Matrix r;
 	r.row=t.row;
 	r.column=t.column;
 	r.data=new double *[r.row];
@@ -237,7 +239,6 @@ Matrix operator*(double a,const  Matrix& t)
           r.data[i][j]=0;
     }
   }
-  */
 		for(int i=0;i<r.row;i++)
   {
     for(int j=0;j<r.column;j++)
@@ -253,9 +254,9 @@ Matrix operator*(const  Matrix& t,double a)
 	}
 Matrix operator*(const  Matrix& t,const  Matrix& u)
 {
-	Matrix r(t.row,u.column);
+	Matrix r;
 	 if(t.flag==0&&u.flag==0)
-  {/*
+  {
 	r.row=t.row;
 	r.column=u.column;
 	r.data=new double *[r.row];
@@ -267,7 +268,6 @@ Matrix operator*(const  Matrix& t,const  Matrix& u)
           r.data[i][j]=0;
     }
   }
-  */
 	for(int i=0;i<r.row;i++)
   {
     for(int j=0;j<r.column;j++)
