@@ -22,21 +22,26 @@ MatrixXf b;
 int Max= 100000000;
 double squarevector(const MatrixXf &M) //taking square of the MatrixXf
 {
+	/*
 	double result=0;
 	for(int i=0;i<M.rows();i++)
 	{
 		result+=M(i,0)*M(i,0);
 	}
-	return result;
+	*/
+	return M.squaredNorm();
 };
 double innerproduct(const MatrixXf &M,const MatrixXf &N) //taking inner product of the MatrixXf
 {
+	/*
 	double result=0;
 	for(int i=0;i<M.rows();i++)
 	{
 		result+=M(i,0)*N(i,0);
 	}
 	return result;
+	*/
+	return (M.transpose()*N).sum();
 };
 
 double f(MatrixXf &x)
@@ -79,7 +84,6 @@ MatrixXf prox(const MatrixXf& x,const double &L)
 MatrixXf PG(MatrixXf& x,const int &iteration,const double &L)
 {
 	MatrixXf f_value(iteration,1);
-	
 	for (int i=0; i< iteration; i++){ 
 		x=prox(x-(1/L)*grad_f(x),L);	
 		f_value(i,0)= f(x);
@@ -183,20 +187,23 @@ MatrixXf AdaMAPG3(MatrixXf &y_ini,const int &iteration,double &mu, const double 
 	MatrixXf f_value(iteration,2);
 	MatrixXf x_0;
 	x_0= prox(y_ini-(1/L)*grad_f(y_ini),L);
+	
 	for (int t= 1; t< iteration; t++){
 		MatrixXf x;
 		x= x_0;
 		MatrixXf z;
 		z= x_0;
-		MatrixXf y;
+		MatrixXf y=y_ini;
 		double A= 0.0;
-		MatrixXf alpha(n,1); 
+		MatrixXf alpha=MatrixXf::Zero(n,1); 
 		MatrixXf v;
 		for (int i=0; i< Max; i++){
+			
 			apg3(x,z,y,A,alpha,x_0,mu,L);
 			f_value(k,0)= F(x);
 			f_value(k,1)= F(z);
 			k= k+1;
+			cout<<k<<endl;
 			v= prox(x-(1/L)*grad_f(x),L);
 			if (squarevector(v- x)<= 0.5*squarevector(x_0- y_ini)){
 				x_0= x;
@@ -211,6 +218,7 @@ MatrixXf AdaMAPG3(MatrixXf &y_ini,const int &iteration,double &mu, const double 
 		if (k>= iteration){
 			break;
 		}
+		cout<<"temp2"<<endl;
 	}
 	return f_value;
 };
@@ -417,7 +425,6 @@ int main()
 	AtransposeA=Atranspose*A;
 	int selection;
 	int iteration;
-	
 	cout<<"Please enter the number of iteration:"<<endl;
 	cin>>iteration;
 
@@ -441,7 +448,8 @@ int main()
 		cout<<"8.AdaAPG1"<<endl;
 		MatrixXf F_value;
 		cin>>selection;
-		MatrixXf x_0(M,1);
+		MatrixXf x_0=MatrixXf::Zero(M,1);
+		//cout<<x_0<<endl;
 		if(selection==0) 
 		{
 			break;
